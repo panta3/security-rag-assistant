@@ -17,8 +17,8 @@
 - [x] Retrieval precision: **66.7%**, citation accuracy: **66.7%**, keyword recall: **66.7%** — reproducible across repeated runs (greedy decoding, no randomness)
 
 ## December
-- [ ] Dockerize, deploy to Cloud Run
-- [ ] Add a minimal frontend (single HTML page + fetch calls to /query) so the project is demoable by URL, not just curl/JSON
+- [x] Minimal frontend (`static/index.html`, served at `/` by FastAPI) — single self-contained page, no framework: question box, example chips, answer + citations rendered live via fetch() against the existing /query endpoint
+- [ ] Dockerize, deploy to Cloud Run (frontend + API both come along for free once that's done, since it's served by the same app)
 - [ ] README screenshots/demo + eval results
 - [ ] Resume bullet once deployed and eval numbers exist
 

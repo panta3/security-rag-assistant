@@ -23,7 +23,8 @@ User query -> retrieval (top-k) -> LLM generation (with citations) -> answer
 ```
 
 ## Stack
-- FastAPI (serving)
+- FastAPI (serving) + a single self-contained HTML/CSS/JS frontend at `/`
+  (no framework — the whole point is a URL to click, not another curl call)
 - PyTorch + sentence-transformers (embeddings), GPU-accelerated
 - Chroma (vector DB, local persistent — zero setup)
 - Qwen2.5-3B-Instruct (generation), running locally via transformers —
@@ -72,6 +73,6 @@ downloads the embedding model (~90MB) and Qwen2.5-3B-Instruct (~6GB)
 from Hugging Face.
 
 ## Status
-Ingestion, retrieval, generation, and the eval harness are all working
-end-to-end with real measured numbers (see above). Not yet deployed —
-Cloud Run + a minimal frontend are next. See `TODO.md`.
+Ingestion, retrieval, generation, the eval harness (real measured
+numbers, see above), and a minimal frontend are all working end-to-end
+locally. Not yet deployed — Cloud Run is next. See `TODO.md`.

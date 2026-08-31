@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Security RAG Assistant</title>
+<style>
+  :root {
+    --bg: #04060a;
+    --panel: #0a0f1a;
+    --panel-2: #0d1420;
+    --border: #1a2b3d;
+    --border-bright: #1f4d4a;
+    --text: #d6f5ef;
+    --muted: #5c7a8a;
+    --cyan: #00f0ff;
+    --green: #00ff9d;
+    --magenta: #ff2ec4;
+    --critical: #ff3b6b;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: "SF Mono", "Cascadia Code", "Fira Code", Consolas, "JetBrains Mono", monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 48px 20px;
+    position: relative;
+    overflow-x: hidden;
+  }
+  /* animated grid backdrop */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, #000 40%, transparent 90%);
+    animation: drift 30s linear infinite;
+    z-index: 0;
+  }
+  @keyframes drift {
+    0% { background-position: 0 0, 0 0; }
+    100% { background-position: 42px 84px, 84px 42px; }
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    top: -20%;
+    left: 50%;
+    width: 800px;
+    height: 500px;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse, rgba(0, 240, 255, 0.10), transparent 65%);
+    z-index: 0;
+    pointer-events: none;
+  }
+  main { width: 100%; max-width: 720px; position: relative; z-index: 1; }
+
+  header { margin-bottom: 30px; }
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .eyebrow .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green), 0 0 16px var(--green);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+  h1 {
+    font-size: 26px;
+    margin: 0 0 10px;
+    letter-spacing: 0.02em;
+    color: var(--cyan);
+    text-shadow: 0 0 18px rgba(0, 240, 255, 0.35);
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .subtitle code {
+    background: var(--panel-2);
+    border: 1px solid var(--border-bright);
+    color: var(--green);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 12px;
+  }
+
+  form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+  }
+  form:focus-within {
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 1px rgba(0, 240, 255, 0.25), 0 0 24px rgba(0, 240, 255, 0.12);
+  }
+  .prompt-prefix {
+    display: flex;
+    align-items: center;
+    padding-left: 14px;
+    color: var(--green);
+    font-size: 15px;
+    user-select: none;
+  }
+  input[type="text"] {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    padding: 14px 8px;
+    font-family: inherit;
+    font-size: 14.5px;
+    outline: none;
+  }
+  input[type="text"]::placeholder { color: #395366; }
+  button {
+    background: linear-gradient(135deg, var(--cyan), #00b4c4);
+    color: #001417;
+    border: none;
+    border-radius: 7px;
+    padding: 0 22px;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin: 4px;
+    box-shadow: 0 0 16px rgba(0, 240, 255, 0.35);
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+  }
+  button:hover:not(:disabled) {
+    box-shadow: 0 0 24px rgba(0, 240, 255, 0.55);
+    transform: translateY(-1px);
+  }
+  button:disabled {
+    background: var(--border-bright);
+    color: var(--muted);
+    box-shadow: none;
+    cursor: default;
+  }
+
+  .examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 32px;
+  }
+  .example-chip {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 11.5px;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .example-chip:hover {
+    border-color: var(--green);
+    color: var(--green);
+    box-shadow: 0 0 12px rgba(0, 255, 157, 0.2);
+  }
+
+  #result { display: none; }
+  .answer-card {
+    background: var(--panel);
+    border: 1px solid var(--border-bright);
+    border-radius: 10px;
+    padding: 22px;
+    margin-bottom: 18px;
+    position: relative;
+    box-shadow: 0 0 30px rgba(0, 240, 255, 0.06);
+  }
+  .answer-card .label {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--cyan);
+    margin-bottom: 12px;
+  }
+  .answer-text {
+    font-size: 14.5px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    color: var(--text);
+  }
+  .declined { color: var(--muted); font-style: italic; }
+
+  .citations { display: flex; flex-direction: column; gap: 10px; }
+  .citation {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--green);
+    border-radius: 6px;
+    padding: 13px 16px;
+  }
+  .citation .meta {
+    font-size: 11px;
+    color: var(--green);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    margin-bottom: 5px;
+  }
+  .citation .excerpt {
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .loading {
+    color: var(--cyan);
+    font-size: 13px;
+    display: none;
+    letter-spacing: 0.05em;
+  }
+  .loading::after {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    animation: dots 1.2s steps(4, end) infinite;
+  }
+  @keyframes dots {
+    0% { content: ""; }
+    25% { content: "."; }
+    50% { content: ".."; }
+    75% { content: "..."; }
+  }
+  .error {
+    color: var(--critical);
+    font-size: 13px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow"><span class="dot"></span>LOCAL INFERENCE &middot; NO EXTERNAL API</div>
+    <h1>Security RAG Assistant</h1>
+    <div class="subtitle">
+      Ask a question about the ingested corpus (currently: NIST Cybersecurity
+      Framework 2.0). Answers cite the source page — ask something off-topic
+      and it declines instead of guessing. Powered by a locally-hosted
+      Qwen2.5-3B-Instruct model. See
+      <code>/eval</code> for measured retrieval/citation/hallucination numbers.
+    </div>
+  </header>
+
+  <form id="query-form">
+    <span class="prompt-prefix">&gt;</span>
+    <input type="text" id="question" placeholder="query the corpus..." autocomplete="off" />
+    <button type="submit" id="submit-btn">Run</button>
+  </form>
+
+  <div class="examples">
+    <div class="example-chip" data-q="What are the six Functions of the CSF Core?">Six Functions of the CSF?</div>
+    <div class="example-chip" data-q="What are the two components of a CSF Organizational Profile?">CSF Organizational Profile?</div>
+    <div class="example-chip" data-q="What is the capital of Australia?">Off-topic question</div>
+  </div>
+
+  <div class="loading" id="loading">Retrieving + generating</div>
+  <div class="error" id="error"></div>
+
+  <div id="result">
+    <div class="answer-card">
+      <div class="label">// Answer</div>
+      <div class="answer-text" id="answer-text"></div>
+    </div>
+    <div class="citations" id="citations"></div>
+  </div>
+</main>
+
+<script>
+  const form = document.getElementById("query-form");
+  const input = document.getElementById("question");
+  const submitBtn = document.getElementById("submit-btn");
+  const loading = document.getElementById("loading");
+  const errorBox = document.getElementById("error");
+  const result = document.getElementById("result");
+  const answerText = document.getElementById("answer-text");
+  const citationsBox = document.getElementById("citations");
+
+  document.querySelectorAll(".example-chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      input.value = chip.dataset.q;
+      form.requestSubmit();
+    });
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const question = input.value.trim();
+    if (!question) return;
+
+    submitBtn.disabled = true;
+    loading.style.display = "block";
+    errorBox.style.display = "none";
+    result.style.display = "none";
+
+    try {
+      const res = await fetch("/query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question }),
+      });
+
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      const data = await res.json();
+
+      const declined = data.citations.length === 0;
+      answerText.textContent = data.answer;
+      answerText.className = declined ? "answer-text declined" : "answer-text";
+
+      citationsBox.innerHTML = "";
+      if (!declined) {
+        data.citations.forEach((c) => {
+          const div = document.createElement("div");
+          div.className = "citation";
+          div.innerHTML = `
+            <div class="meta">${c.source_doc} :: page ${c.page}</div>
+            <div class="excerpt">${c.excerpt}...</div>
+          `;
+          citationsBox.appendChild(div);
+        });
+      }
+
+      result.style.display = "block";
+    } catch (err) {
+      errorBox.textContent = err.message;
+      errorBox.style.display = "block";
+    } finally {
+      loading.style.display = "none";
+      submitBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
