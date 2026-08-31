@@ -1,0 +1,170 @@
+[
+  {
+    "question": "What are the six Functions of the CSF Core?",
+    "answerable": true,
+    "expected_pages": [8, 9, 10],
+    "expected_keywords": ["Govern", "Identify", "Protect", "Detect", "Respond", "Recover"]
+  },
+  {
+    "question": "What does the GOVERN function address?",
+    "answerable": true,
+    "expected_pages": [8, 21],
+    "expected_keywords": ["risk management strategy", "policy"]
+  },
+  {
+    "question": "What are the two components of a CSF Organizational Profile?",
+    "answerable": true,
+    "expected_pages": [11],
+    "expected_keywords": ["Current Profile", "Target Profile"]
+  },
+  {
+    "question": "What is a CSF Community Profile?",
+    "answerable": true,
+    "expected_pages": [11, 31],
+    "expected_keywords": ["baseline", "sector"]
+  },
+  {
+    "question": "How many CSF Tiers are there, and what are their names?",
+    "answerable": true,
+    "expected_pages": [12, 13],
+    "expected_keywords": ["Partial", "Risk Informed", "Repeatable", "Adaptive"]
+  },
+  {
+    "question": "What are the five steps for creating and using a CSF Organizational Profile?",
+    "answerable": true,
+    "expected_pages": [11, 12],
+    "expected_keywords": ["Scope", "Gather", "Create", "Analyze", "Implement"]
+  },
+  {
+    "question": "What three types of online resources supplement the CSF?",
+    "answerable": true,
+    "expected_pages": [14],
+    "expected_keywords": ["Informative References", "Implementation Examples", "Quick-Start Guides"]
+  },
+  {
+    "question": "Who is the primary audience for the CSF?",
+    "answerable": true,
+    "expected_pages": [2],
+    "expected_keywords": ["cybersecurity programs"]
+  },
+  {
+    "question": "What was the CSF called before version 2.0?",
+    "answerable": true,
+    "expected_pages": [2],
+    "expected_keywords": ["Framework for Improving Critical Infrastructure Cybersecurity"]
+  },
+  {
+    "question": "When was CSF 2.0 published?",
+    "answerable": true,
+    "expected_pages": [1],
+    "expected_keywords": ["February 26, 2024"]
+  },
+  {
+    "question": "What is the CSF 2.0 publication's document identifier?",
+    "answerable": true,
+    "expected_pages": [1],
+    "expected_keywords": ["CSWP 29"]
+  },
+  {
+    "question": "What does the Organizational Context (GV.OC) category cover?",
+    "answerable": true,
+    "expected_pages": [21],
+    "expected_keywords": ["mission", "stakeholder"]
+  },
+  {
+    "question": "What kinds of assets does the Asset Management (ID.AM) category track inventories of?",
+    "answerable": true,
+    "expected_pages": [23],
+    "expected_keywords": ["hardware", "software"]
+  },
+  {
+    "question": "What does the Platform Security (PR.PS) category cover?",
+    "answerable": true,
+    "expected_pages": [25],
+    "expected_keywords": ["configuration management", "software"]
+  },
+  {
+    "question": "What four categories exist under the Respond function?",
+    "answerable": true,
+    "expected_pages": [27],
+    "expected_keywords": ["Incident Management", "Incident Analysis", "Incident Mitigation"]
+  },
+  {
+    "question": "What two categories exist under the Recover function?",
+    "answerable": true,
+    "expected_pages": [27, 28],
+    "expected_keywords": ["Incident Recovery Plan Execution", "Incident Recovery Communication"]
+  },
+  {
+    "question": "How does CSF 2.0 describe the relationship between cybersecurity risks and privacy risks?",
+    "answerable": true,
+    "expected_pages": [17, 18],
+    "expected_keywords": ["independent disciplines", "overlap"]
+  },
+  {
+    "question": "What NIST framework addresses risks from artificial intelligence?",
+    "answerable": true,
+    "expected_pages": [19],
+    "expected_keywords": ["AI Risk Management Framework"]
+  },
+  {
+    "question": "What is Cybersecurity Supply Chain Risk Management (C-SCRM)?",
+    "answerable": true,
+    "expected_pages": [18, 19],
+    "expected_keywords": ["supply chain", "risk"]
+  },
+  {
+    "question": "What characterizes Tier 1 (Partial) in the CSF Tiers?",
+    "answerable": true,
+    "expected_pages": [29],
+    "expected_keywords": ["ad hoc", "limited awareness"]
+  },
+  {
+    "question": "What characterizes Tier 4 (Adaptive) in the CSF Tiers?",
+    "answerable": true,
+    "expected_pages": [30],
+    "expected_keywords": ["adapts", "real-time"]
+  },
+  {
+    "question": "What is a CSF Implementation Example?",
+    "answerable": true,
+    "expected_pages": [14, 31],
+    "expected_keywords": ["action-oriented", "outcome"]
+  },
+  {
+    "question": "Does the CSF prescribe specific security controls organizations must implement?",
+    "answerable": true,
+    "expected_pages": [1, 5],
+    "expected_keywords": ["does not prescribe"]
+  },
+  {
+    "question": "What email address can organizations use to send NIST suggestions about the CSF?",
+    "answerable": true,
+    "expected_pages": [2, 9],
+    "expected_keywords": ["cyberframework@nist.gov"]
+  },
+  {
+    "question": "What is the capital of Australia?",
+    "answerable": false,
+    "expected_pages": [],
+    "expected_keywords": []
+  },
+  {
+    "question": "What programming language does the CSF require organizations to use for compliance automation?",
+    "answerable": false,
+    "expected_pages": [],
+    "expected_keywords": []
+  },
+  {
+    "question": "What is the current price of Bitcoin according to this document?",
+    "answerable": false,
+    "expected_pages": [],
+    "expected_keywords": []
+  },
+  {
+    "question": "According to the CSF, what is the minimum number of firewalls an organization must deploy?",
+    "answerable": false,
+    "expected_pages": [],
+    "expected_keywords": []
+  }
+]

@@ -17,7 +17,11 @@ class VectorStore:
         documents: list[str],
         metadatas: list[dict],
     ) -> None:
-        self._collection.add(
+        # upsert, not add — re-ingesting the same document with
+        # deterministic IDs (see routes.py) should overwrite existing
+        # chunks, not pile up duplicates. add() would raise/duplicate on
+        # a repeat ID instead of replacing it.
+        self._collection.upsert(
             ids=ids, embeddings=embeddings, documents=documents, metadatas=metadatas
         )
 

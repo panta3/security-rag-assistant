@@ -2,8 +2,9 @@
 
 RAG pipeline over security/compliance documents (policies, CIS
 benchmarks, framework docs) — answers questions with citations back to
-the source doc, and tracks its own hallucination rate instead of just
-trusting the output. Deployed on GCP Cloud Run.
+the source doc, and measures its own hallucination rate instead of just
+trusting the output. Runs locally today; GCP Cloud Run is the deploy
+target (see TODO.md), not yet live.
 
 ## Why security docs, not generic PDFs
 Ties this project to the Cloud Security pillar instead of being a
@@ -35,11 +36,15 @@ User query -> retrieval (top-k) -> LLM generation (with citations) -> answer
 - [x] Chunk + embed + store in vector DB
 - [x] `/query` endpoint: retrieve top-k chunks, generate an answer with
       inline citations back to source doc + page
-- [x] Hallucination guard: refuses to answer (no LLM call at all) when
-      retrieval doesn't find anything relevant, rather than trusting the
-      model to admit it doesn't know
-- [ ] Eval harness: a small labeled question set, measure retrieval
-      precision and whether answers cite real (vs. hallucinated) sources
+- [x] Hallucination guard, two layers: a retrieval-distance threshold
+      blocks queries with no relevant content at all, and the model is
+      required to say so explicitly when retrieval finds related-but-
+      insufficient context — measured, not just "the model was honest
+      that one time"
+- [x] Eval harness: 28 hand-built questions against the real ingested
+      corpus — **66.7% retrieval precision, 66.7% citation accuracy,
+      66.7% keyword recall, 0% hallucination rate** (reproducible across
+      repeated runs)
 
 ## Explicitly out of scope for v1
 - Multi-turn conversation / chat history
@@ -58,6 +63,7 @@ curl -sSL -o data/nist_csf_2.0.pdf https://nvlpubs.nist.gov/nistpubs/CSWP/NIST.C
 
 uvicorn app.main:app --reload
 # then: POST /ingest {"path": "data/nist_csf_2.0.pdf"}, then POST /query {"question": "..."}
+# or: POST /eval {} to run the full eval harness against data/eval_set.json
 ```
 
 Requires a CUDA GPU for reasonable generation speed (falls back to CPU
@@ -66,6 +72,6 @@ downloads the embedding model (~90MB) and Qwen2.5-3B-Instruct (~6GB)
 from Hugging Face.
 
 ## Status
-Ingestion, retrieval, and generation all working end-to-end, validated
-against a real NIST CSF 2.0 PDF. Eval harness (formal precision/citation/
-hallucination-rate metrics) not yet built. See `TODO.md`.
+Ingestion, retrieval, generation, and the eval harness are all working
+end-to-end with real measured numbers (see above). Not yet deployed —
+Cloud Run + a minimal frontend are next. See `TODO.md`.
