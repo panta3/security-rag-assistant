@@ -1,0 +1,10 @@
+fastapi>=0.111
+uvicorn[standard]>=0.30
+pydantic-settings>=2.3
+torch>=2.3
+transformers>=4.45
+accelerate>=0.34
+sentence-transformers>=3.0
+chromadb>=0.5
+pypdf>=4.2
+pytest>=8.0
