@@ -3,5 +3,4 @@ __pycache__/
 *.pyc
 .env
 chroma_data/
-data/*.pdf
 .DS_Store

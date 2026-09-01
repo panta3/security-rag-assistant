@@ -1,43 +1,41 @@
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+import os
 
-from app.core.config import settings
+from huggingface_hub import hf_hub_download
+from llama_cpp import Llama
+
+# Q4_K_M: 4-bit quantization, the standard "good default" balance of size,
+# speed, and quality for llama.cpp — plain fp16/fp32 transformers on CPU
+# measured at ~0.26 tok/s for this model (a 512-token reply would take
+# 30+ minutes), which is what this class of quantized CPU inference exists
+# to fix.
+_MODEL_REPO = "Qwen/Qwen2.5-3B-Instruct-GGUF"
+_MODEL_FILE = "qwen2.5-3b-instruct-q4_k_m.gguf"
 
 
 class LocalLLM:
     def __init__(self):
-        # Loaded once at import time, same reasoning as EmbeddingModel —
-        # this is expensive (model weights onto the GPU), never per-request.
-        self._tokenizer = AutoTokenizer.from_pretrained(settings.llm_model)
-        self._model = AutoModelForCausalLM.from_pretrained(
-            settings.llm_model,
-            torch_dtype=torch.float16,
-            device_map="auto",
+        # Downloads once (cached by huggingface_hub) — baked into the
+        # Docker image at build time in production, same reasoning as the
+        # old transformers-based load: Cloud Run instances are ephemeral,
+        # so nothing downloaded at runtime survives to the next cold start.
+        model_path = hf_hub_download(repo_id=_MODEL_REPO, filename=_MODEL_FILE)
+        self._llm = Llama(
+            model_path=model_path,
+            n_ctx=4096,
+            n_threads=os.cpu_count(),
+            verbose=False,
         )
 
     def generate(self, prompt: str, max_new_tokens: int = 512) -> str:
-        messages = [{"role": "user", "content": prompt}]
-        # return_dict=True gives back input_ids + attention_mask together —
-        # generate() needs both (a raw input_ids tensor alone silently
-        # omits the attention mask, which is wrong even when it happens
-        # not to crash).
-        inputs = self._tokenizer.apply_chat_template(
-            messages,
-            add_generation_prompt=True,
-            return_tensors="pt",
-            return_dict=True,
-        ).to(self._model.device)
-
-        output = self._model.generate(
-            **inputs,
-            max_new_tokens=max_new_tokens,
-            do_sample=False,
+        # create_chat_completion applies the model's own chat template
+        # (read from the GGUF's embedded metadata) — no separate tokenizer
+        # or chat-template handling needed on our side.
+        result = self._llm.create_chat_completion(
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=max_new_tokens,
+            temperature=0.0,
         )
-
-        # Slice off the echoed prompt tokens — generate() returns the full
-        # sequence (prompt + completion), we only want the new part.
-        new_tokens = output[0][inputs["input_ids"].shape[-1] :]
-        return self._tokenizer.decode(new_tokens, skip_special_tokens=True)
+        return result["choices"][0]["message"]["content"]
 
 
 llm = LocalLLM()

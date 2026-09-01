@@ -1,10 +1,11 @@
 # Security RAG Assistant
 
+**Live: https://security-rag-assistant-x3hib67cua-uc.a.run.app**
+
 RAG pipeline over security/compliance documents (policies, CIS
 benchmarks, framework docs) — answers questions with citations back to
 the source doc, and measures its own hallucination rate instead of just
-trusting the output. Runs locally today; GCP Cloud Run is the deploy
-target (see TODO.md), not yet live.
+trusting the output. Deployed on GCP Cloud Run.
 
 ## Why security docs, not generic PDFs
 Ties this project to the Cloud Security pillar instead of being a
@@ -25,12 +26,17 @@ User query -> retrieval (top-k) -> LLM generation (with citations) -> answer
 ## Stack
 - FastAPI (serving) + a single self-contained HTML/CSS/JS frontend at `/`
   (no framework — the whole point is a URL to click, not another curl call)
-- PyTorch + sentence-transformers (embeddings), GPU-accelerated
+- PyTorch + sentence-transformers (embeddings) — GPU-accelerated locally,
+  CPU in production (the embedding model is small; it was never the
+  bottleneck)
 - Chroma (vector DB, local persistent — zero setup)
-- Qwen2.5-3B-Instruct (generation), running locally via transformers —
-  no external API key needed
-- GCP Cloud Run (deploy target)
-- Docker
+- Qwen2.5-3B-Instruct (generation) — no external API key needed.
+  Quantized (GGUF, Q4_K_M) via `llama-cpp-python` in production for
+  usable CPU inference speed (~10 tok/s vs. ~0.26 tok/s for the naive
+  full-precision path — see TODO.md); full-precision via `transformers`
+  for local GPU dev
+- GCP Cloud Run + Docker (deployed, CPU-only — see TODO.md for why GPU
+  Cloud Run wasn't the fix, and what actually was)
 
 ## Core features (MVP scope)
 - [x] Ingest real security/compliance PDFs (NIST CSF 2.0 as the test corpus)
@@ -58,21 +64,30 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
 
-# data/*.pdf is gitignored (test corpus, not source code) — grab a real
-# public security doc, e.g. NIST CSF 2.0:
-curl -sSL -o data/nist_csf_2.0.pdf https://nvlpubs.nist.gov/nistpubs/CSWP/NIST.CSWP.29.pdf
+# data/nist_csf_2.0.pdf is committed (public NIST document, no license
+# issue) — it's the corpus the Docker build bakes into the image.
 
 uvicorn app.main:app --reload
 # then: POST /ingest {"path": "data/nist_csf_2.0.pdf"}, then POST /query {"question": "..."}
 # or: POST /eval {} to run the full eval harness against data/eval_set.json
 ```
 
-Requires a CUDA GPU for reasonable generation speed (falls back to CPU
-automatically via `device_map="auto"`, but will be slow). First run
-downloads the embedding model (~90MB) and Qwen2.5-3B-Instruct (~6GB)
-from Hugging Face.
+Local dev uses full-precision `transformers` and prefers a CUDA GPU for
+reasonable generation speed (falls back to CPU automatically via
+`device_map="auto"`, but will be slow — this is exactly the problem the
+deployed version's GGUF quantization solves). First run downloads the
+embedding model (~90MB) and Qwen2.5-3B-Instruct (~6GB) from Hugging Face.
+
+To build/run the same container the deployed version uses:
+```bash
+docker build -t security-rag-assistant .
+docker run -p 8080:8080 security-rag-assistant
+```
 
 ## Status
-Ingestion, retrieval, generation, the eval harness (real measured
-numbers, see above), and a minimal frontend are all working end-to-end
-locally. Not yet deployed — Cloud Run is next. See `TODO.md`.
+Fully deployed and live (see the link at the top). Ingestion, retrieval,
+generation, the eval harness (real measured numbers, see above), and the
+frontend are all working end-to-end in production, not just locally.
+See `TODO.md` for what's left (README demo screenshots) and for the real
+bugs found getting this deployed — worth reading if you want the honest
+version, not just the checklist.

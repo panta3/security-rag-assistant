@@ -1,4 +1,5 @@
 import chromadb
+from chromadb.config import Settings as ChromaSettings
 
 from app.core.config import settings
 
@@ -6,8 +7,15 @@ from app.core.config import settings
 class VectorStore:
     def __init__(self):
         # PersistentClient writes to disk at settings.vector_db_path, so
-        # ingested data survives across server restarts.
-        self._client = chromadb.PersistentClient(path=settings.vector_db_path)
+        # ingested data survives across server restarts. Telemetry is off —
+        # Chroma's default anonymized-telemetry ping can stall client init
+        # for a long time on networks that block or slow the outbound call
+        # (e.g. Cloud Run's egress), which was silently adding to cold
+        # start time on top of the actual model loading.
+        self._client = chromadb.PersistentClient(
+            path=settings.vector_db_path,
+            settings=ChromaSettings(anonymized_telemetry=False),
+        )
         self._collection = self._client.get_or_create_collection("security_docs")
 
     def add(

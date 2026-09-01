@@ -8,3 +8,10 @@ sentence-transformers>=3.0
 chromadb>=0.5
 pypdf>=4.2
 pytest>=8.0
+
+# CPU generation only — plain transformers eager-mode inference measured at
+# ~0.26 tok/s for Qwen2.5-3B on CPU (unusable: a 512-token reply would take
+# 30+ min). llama.cpp's quantized GGUF path is the standard fix for CPU LLM
+# serving and gets this into a usable few-seconds-per-response range.
+llama-cpp-python>=0.3
+huggingface_hub>=0.24
